@@ -18,4 +18,7 @@ func main() {
 	go puts("6")
 	go puts("7")
 	puts("0")
+
+	fmt.Scanln()
+	fmt.Println("Done")
 }
