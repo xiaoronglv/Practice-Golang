@@ -24,7 +24,7 @@ type readOp struct {
 type writeOp struct {
 	key   string
 	value int
-	resp  chan int
+	resp  chan bool
 }
 
 func main() {
@@ -34,12 +34,14 @@ func main() {
 
 	go func() {
 		state := make(map[string]int)
-		select {
-		case readOp := <-readC:
-			readOp.resp <- state[readOp.key]
-		case writeOp := <-writeC:
-			state.value = writeOp.value
-			writeOp.resp <- true
+		for {
+			select {
+			case readOp := <-readC:
+				readOp.resp <- state[readOp.key]
+			case writeOp := <-writeC:
+				state[writeOp.key] = writeOp.value
+				writeOp.resp <- true
+			}
 		}
 	}()
 
@@ -47,13 +49,13 @@ func main() {
 		go func() {
 			for {
 				read := &readOp{
-					key:  nameList[rand.Int(len(nameList)-1)],
-					resp: make(chan bool),
+					key:  nameList[rand.Intn(len(nameList)-1)],
+					resp: make(chan int),
 				}
 
 				readC <- read
 				response := <-read.resp
-				fmt.Println("Response: ", response)
+				fmt.Println("Read Response: ", response)
 				time.Sleep(time.Millisecond)
 			}
 
@@ -64,14 +66,14 @@ func main() {
 	for i := 0; i < 100; i++ {
 		go func() {
 			for {
-				write := &writeOp{
-					key:   nameList[rand.Int(len(nameList)-1)],
-					value: rand.Int(10000),
+				writeOp := &writeOp{
+					key:   nameList[rand.Intn(len(nameList)-1)],
+					value: rand.Intn(10000),
 					resp:  make(chan bool),
 				}
 
-				writeC <- write
-				response := <-write.resp
+				writeC <- writeOp
+				response := <-writeOp.resp
 
 				fmt.Println("write is done:", response)
 				time.Sleep(time.Millisecond)
@@ -79,5 +81,5 @@ func main() {
 		}()
 
 	}
-
+	time.Sleep(time.Second)
 }
