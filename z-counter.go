@@ -38,6 +38,7 @@ func main() {
 	w.Done()
 	w.Done()
 	w.Done()
+
 	w.Wait()
 	fmt.Println(1)
 }
