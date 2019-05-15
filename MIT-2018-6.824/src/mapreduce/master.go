@@ -12,6 +12,9 @@ import (
 
 // Master holds all the state that the master needs to keep track of.
 type Master struct {
+	// Chunk: Embbed an lock in struct
+	// https://talks.golang.org/2012/10things.slide#3
+	// https://stackoverflow.com/questions/44949467/when-do-you-embed-mutex-in-struct-in-go
 	sync.Mutex
 
 	address     string
