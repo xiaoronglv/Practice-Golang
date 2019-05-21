@@ -144,6 +144,8 @@ func cleanup(mr *Master) {
 }
 
 func TestSequentialSingle(t *testing.T) {
+	// why should I specify the count of nreduce? 1
+	// does that mean the count of worker?
 	mr := Sequential("test", makeInputs(1), 1, MapFunc, ReduceFunc)
 	mr.Wait()
 	check(t, mr.files)

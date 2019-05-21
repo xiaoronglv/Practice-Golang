@@ -7,9 +7,9 @@ import (
 func doMap(
 	jobName string, // the name of the MapReduce job
 	mapTask int, // which map task this is
-	inFile string,
+	inFile string, // Ryan's TODO: what does inFile mean? input file?
 	nReduce int, // the number of reduce task that will be run ("R" in the paper)
-	mapF func(filename string, contents string) []KeyValue,
+	mapF func(filename string, contents string) []KeyValue, // Ryan's TODO: what does contents mean?
 ) {
 	//
 	// doMap manages one map task: it should read one of the input files
