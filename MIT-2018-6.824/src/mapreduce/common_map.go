@@ -53,6 +53,23 @@ func doMap(
 	//
 	// Your code here (Part I).
 	//
+	data, _ := ioutil.ReadFile(inFile)
+
+	encoders := make([]*json.Encoder, nReduce)
+	for r := 0; r < nReduce; r++ {
+		filename := reduceName(jobName, mapTask, r)
+		fd := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		encoder[i] = json.NewEncoder(fd)
+		defer fd.Close()
+	}
+
+	kvs := mapF(inFile, string(data))
+
+	for _, kv := range kvs {
+		r := ihash(kvs.key) % nReduce
+		encoders[r].Encode(kv)
+	}
+
 }
 
 func ihash(s string) int {

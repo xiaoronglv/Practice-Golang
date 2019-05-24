@@ -60,7 +60,7 @@ func newMaster(master string) (mr *Master) {
 
 // Sequential runs map and reduce tasks sequentially, waiting for each task to
 // complete before running the next.
-func Sequential(jobName string, files []string, nreduce int, mapF func(string, string) []KeyValue, reduceF func(string, []string) string,) (mr *Master) {
+func Sequential(jobName string, files []string, nreduce int, mapF func(string, string) []KeyValue, reduceF func(string, []string) string) (mr *Master) {
 	mr = newMaster("master")
 	go mr.run(jobName, files, nreduce, func(phase jobPhase) {
 		switch phase {
@@ -129,7 +129,7 @@ func Distributed(jobName string, files []string, nreduce int, master string) (mr
 // statistics are collected, and the master is shut down.
 //
 // Note that this implementation assumes a shared file system.
-func (mr *Master) run(jobName string, files []string, nreduce int, schedule func(phase jobPhase), finish func(), ) {
+func (mr *Master) run(jobName string, files []string, nreduce int, schedule func(phase jobPhase), finish func()) {
 	mr.jobName = jobName
 	mr.files = files
 	mr.nReduce = nreduce
