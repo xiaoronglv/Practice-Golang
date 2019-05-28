@@ -1,8 +1,11 @@
 package mapreduce
 
 import (
+	"encoding/json"
+	"fmt"
 	"hash/fnv"
 	"io/ioutil"
+	"os"
 )
 
 func ihash(s string) int {
@@ -14,10 +17,30 @@ func ihash(s string) int {
 func doMap(
 	jobName string, // the name of the MapReduce job
 	mapTask int, // which map task this is
-	inFile string, // Ryan's TODO: what does inFile mean? input file?
+	inFile string,
 	nReduce int, // the number of reduce task that will be run ("R" in the paper)
-	mapF func(filename string, contents string) []KeyValue, // Ryan's TODO: what does contents mean?
+	mapF func(filename string, contents string) []KeyValue,
 ) {
+
+	data, err := ioutil.ReadFile(inFile)
+	if err != nil {
+		return
+	}
+
+	encoders := make([]json.Encoder, nReduce)
+	for r := 0; r < nReduce; r++ {
+		fileName := reduceName(jobName, mapTask, r)
+		fd := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+		defer fd.Close()
+		encoder := json.NewEncoder(fd)
+		encoders[r] = encoder
+	}
+
+	kvs := mapF(filename, data)
+	for _, kv := range kvs {
+		r := ihash(kv.key) % nReduce
+		encoder[r].Encode(kv)
+	}
 	//
 	// doMap manages one map task: it should read one of the input files
 	// (inFile), call the user-defined map function (mapF) for that file's
@@ -60,22 +83,4 @@ func doMap(
 	//
 	// Your code here (Part I).
 	//
-
-	data, _ := ioutil.ReadFine(inFile)
-	encoders := make([]*json.Encoder, nReducer)
-	for r := 0; r < nReduce; r++ {
-		file := reduceName(jobName, mapTask, r)
-		fd := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
-		encoders[r] = json.NewEncoder(fd)
-		defer fd.Close()
-	}
-
-	kvs := mapF(infile, string(data))
-
-	for _, kv := range kvs {
-		r := ihash(kv.key) % nReduce
-		encoders[r].Encode(kv)
-		return
-	}
-
 }

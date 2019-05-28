@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mapreduce"
 	"os"
+	"strings"
 )
 
 //
@@ -14,7 +15,11 @@ import (
 // of key/value pairs.
 //
 func mapF(filename string, contents string) []mapreduce.KeyValue {
-	// Your code here (Part II).
+	//	kvs := make([]mapreduce.KeyValue)
+	//	wordList := strings.Fields(contents)
+	//	for _, word := range wordList {
+	//
+	//	}
 }
 
 //
