@@ -2,9 +2,9 @@ package mapreduce
 
 import (
 	"encoding/json"
-	"fmt"
 	"hash/fnv"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -22,25 +22,28 @@ func doMap(
 	mapF func(filename string, contents string) []KeyValue,
 ) {
 
-	data, err := ioutil.ReadFile(inFile)
-	if err != nil {
-		return
-	}
-
-	encoders := make([]json.Encoder, nReduce)
+	encoders := make([]*json.Encoder, nReduce)
 	for r := 0; r < nReduce; r++ {
 		fileName := reduceName(jobName, mapTask, r)
-		fd := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-		defer fd.Close()
+		fd, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0644)
+		if err != nil {
+			log.Println(err)
+		}
 		encoder := json.NewEncoder(fd)
 		encoders[r] = encoder
 	}
 
-	kvs := mapF(filename, data)
-	for _, kv := range kvs {
-		r := ihash(kv.key) % nReduce
-		encoder[r].Encode(kv)
+	data, err := ioutil.ReadFile(inFile)
+	if err != nil {
+		log.Println(err)
 	}
+	contents := string(data)
+	kvs := mapF(jobName, contents)
+	for _, kv := range kvs {
+		r := ihash(kv.Key) % nReduce
+		encoders[r].Encode(kv)
+	}
+
 	//
 	// doMap manages one map task: it should read one of the input files
 	// (inFile), call the user-defined map function (mapF) for that file's

@@ -2,7 +2,6 @@ package mapreduce
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"sort"
 )
@@ -16,36 +15,32 @@ func doReduce(
 ) {
 
 	kvs := make(map[string][]string)
-	var kv KeyValue
 
 	for m := 0; m < nMap; m++ {
 		fileName := reduceName(jobName, m, reduceTask)
-		fd := os.OpenFile(fileName, O_CREATE|O_RDONLY, 0644)
-		defer fd.Close()
+		fd, _ := os.OpenFile(fileName, os.O_CREATE|os.O_RDONLY, 0644)
 		decoder := json.NewDecoder(fd)
 
+		var kv KeyValue
 		for {
 			err := decoder.Decode(&kv)
 			if err != nil {
-				return
+				break
 			}
 			kvs[kv.Key] = append(kvs[kv.Key], kv.Value)
 		}
 	}
 
-	// sort the keys
-	keys := make([]string)
-	for k, _ := range kvs {
-		append(keys, k)
+	var keys []string
+	for k := range kvs {
+		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	fd, _ := os.OpenFile(outFile, os.O_CREATE|os.O_APPEND|os.RDWR, 0644)
-	defer fd.Close()
+	fd, _ := os.OpenFile(outFile, os.O_CREATE|os.O_RDWR, 0644)
 	encoder := json.NewEncoder(fd)
-
-	for _, key := range kvs {
-		kv := KeyValue{Key: key, Value: reduceF(key, kvs[key])}
+	for _, key := range keys {
+		kv := KeyValue{key, reduceF(key, kvs[key])}
 		encoder.Encode(kv)
 	}
 
